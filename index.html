@@ -16,55 +16,162 @@
 <meta name="description" content="viyan website and blog">
 <title>Viyan Vignesh</title>
 <style>
-p {
-  text-align: center;
-  font-size: 60px;
-  margin-top: 0px;
+body {
+    font-family: 'Nunito', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 50%, #b5fffc 75%, #a8e6cf 100%);
 }
+
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.header p {
+    font-size: 60px;
+    margin-top: 0;
+    color: blue;
+}
+
+.profile-section {
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+    display: inline-block;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.profile-section img {
+    border-radius: 50%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    border: 6px solid #fff;
+    object-fit: cover;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #fff;
+    animation: float 3s ease-in-out infinite;
+}
+
+.profile-section img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.2);
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.age-counter {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 2rem;
+    color: #2c3e50;
+}
+
+.games-section {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.game-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 800px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.game-card h2 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.game-card p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.play-button {
+    display: inline-block;
+    background: linear-gradient(145deg, #32CD32, #228B22);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.play-button:hover {
+    transform: translateY(-2px);
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap');
 </style>
 </head>
 <body>
-  <!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MJVK47HK"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
-<p><font color="blue">Baby under construction!</font></p>
-<p id="demo"></p>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MJVK47HK"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
 
-<script>
-// Set the date we're counting down to
-var countDownDate = new Date("Nov 15, 2021 07:14:00").getTime();
+    <div class="header">
+        <p>Welcome to Viyan's World!</p>
+    </div>
 
-// Update the count down every 1 second
-var x = setInterval(function() {
+    <div class="profile-section">
+        <img src="viyan.jpg" width="180" height="180" alt="Viyan's Photo" style="display: block;">
+    </div>
 
-    // Get todays date and time
-    var now = new Date().getTime();
-    
-    // Find the distance between now and the count down date
-    var distance1 = now - countDownDate;
-    var distance = countDownDate + now;
-    
-    // Time calculations for days, hours, minutes and seconds
-    //var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-	var years = Math.floor(distance1 / (1000 * 60 * 60 * 24)/365);
-    var days1 = Math.floor((distance1 / (1000 * 60 * 60 * 24)) % 365);
-    var hours = Math.floor((distance1 % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    var minutes = Math.floor((distance1 % (1000 * 60 * 60)) / (1000 * 60));
-    var seconds = Math.floor((distance1 % (1000 * 60)) / 1000);
-    
-    // Output the result in an element with id="demo"
-    document.getElementById("demo").innerHTML = years + "years " +days1 + "days "+ hours + "hours "
-    + minutes + "minutes " + seconds + "seconds ";
-    
-    // If the count down is over, write some text 
-    if (distance < 0) {
-        clearInterval(x);
-        document.getElementById("demo").innerHTML = "SOMETHING Wrong!!!!";
-    }
-}, 1000);
-</script>
+    <div class="age-counter">
+        <p id="demo" style="font-size: 24px;"></p>
+    </div>
 
-<p> <img src="viyan_birthday.jpg" align="middle" width="200" height="200" </p>
+    <div class="games-section">
+        <div class="game-card">
+            <h2>🎮 Ocean Cleanup Hero 🌊</h2>
+            <p>Help clean the ocean and save sea animals in this fun educational game!</p>
+            <p>Perfect for kids age 3-5 years</p>
+            <a href="games/ocean_cleanup_hero/ocean_cleanup_game%20(1).html" class="play-button">Play Now! 🎯</a>
+        </div>
+    </div>
+
+    <script>
+    // Set the date we're counting down to
+    var countDownDate = new Date("Nov 15, 2021 07:14:00").getTime();
+
+    // Update the count down every 1 second
+    var x = setInterval(function() {
+        // Get todays date and time
+        var now = new Date().getTime();
+        
+        // Find the distance between now and the count down date
+        var distance1 = now - countDownDate;
+        var distance = countDownDate + now;
+        
+        // Time calculations for days, hours, minutes and seconds
+        var years = Math.floor(distance1 / (1000 * 60 * 60 * 24)/365);
+        var days1 = Math.floor((distance1 / (1000 * 60 * 60 * 24)) % 365);
+        var hours = Math.floor((distance1 % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutes = Math.floor((distance1 % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor((distance1 % (1000 * 60)) / 1000);
+        
+        // Output the result in an element with id="demo"
+        document.getElementById("demo").innerHTML = 
+            "Viyan is " + years + " years " + days1 + " days " + 
+            hours + " hours " + minutes + " minutes " + seconds + " seconds old";
+        
+        // If the count down is over, write some text 
+        if (distance < 0) {
+            clearInterval(x);
+            document.getElementById("demo").innerHTML = "SOMETHING Wrong!!!!";
+        }
+    }, 1000);
+    </script>
 </body>
 </html>
