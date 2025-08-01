@@ -54,6 +54,60 @@
             border: 2px solid rgba(255,255,255,0.1);
         }
 
+        .mobile-controls {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .middle-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .mobile-btn {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mobile-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: flex;
+            }
+            .desktop-controls {
+                display: none;
+            }
+            h1 {
+                font-size: 2em;
+                margin: 15px 0;
+            }
+            .game-info {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .stat-card {
+                min-width: 100px;
+                padding: 8px 15px;
+            }
+        }
+
         .game-info {
             display: flex;
             justify-content: space-between;
@@ -189,60 +243,6 @@
             filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1));
         }
 
-        .mobile-controls {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .middle-row {
-            display: flex;
-            gap: 20px;
-        }
-
-        .mobile-btn {
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
-            background: rgba(255,255,255,0.9);
-            border: none;
-            border-radius: 50%;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .mobile-btn:active {
-            transform: scale(0.95);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        @media (max-width: 768px) {
-            .mobile-controls {
-                display: flex;
-            }
-            .desktop-controls {
-                display: none;
-            }
-            h1 {
-                font-size: 2em;
-                margin: 15px 0;
-            }
-            .game-info {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            .stat-card {
-                min-width: 100px;
-                padding: 8px 15px;
-            }
-        }
-
         .pulse {
             animation: pulse 2s infinite;
         }
@@ -282,6 +282,21 @@
                 transform: scale(1);
             }
         }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            clip-path: polygon(50% 0%, 90% 20%, 100% 60%, 75% 100%, 25% 100%, 0% 60%, 10% 20%);
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
     </style>
 </head>
 <body>
@@ -303,7 +318,7 @@
             </div>
         </div>
         
-        <canvas id="gameCanvas"></canvas>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
         
         <div class="controls">
             <div class="mobile-controls">
@@ -326,15 +341,8 @@
                 </div>
             </div>
             <div style="margin-top: 15px;">
-                🗑️ Collect garbage and save beach animals! 🐢🐬🪼
+                🌊 Help rescue the trapped ocean animals! 🐢🐬🪼
             </div>
-        </div>
-        
-        <div class="game-over" id="allAnimalsSaved">
-            <h3 style="color: #32CD32; font-size: 2em; margin-bottom: 20px;">🎉 Yay!!! 🎉</h3>
-            <p style="font-size: 1.5em; margin-bottom: 10px;">You saved All Animals!!!</p>
-            <p style="font-size: 1.2em;">Keep cleaning to complete the mission! 🌟</p>
-            <button class="btn" onclick="closeAllAnimalsSavedMessage()">Continue Cleaning!</button>
         </div>
         
         <div class="game-over" id="gameOver">
@@ -348,23 +356,11 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        // Make canvas responsive
-        function resizeCanvas() {
-            const container = canvas.parentElement;
-            const width = container.clientWidth - 30;
-            const height = Math.min(window.innerHeight * 0.6, width * 0.667);
-            canvas.width = width;
-            canvas.height = height;
-        }
-        
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        
         // Game state
         let gameRunning = true;
         let score = 0;
         let animalsSaved = 0;
-        let lives = 5; // More lives for young players
+        let lives = 3;
         
         // Game objects
         const rabbit = {
@@ -375,24 +371,12 @@
             direction: { x: 0, y: 0 }
         };
         
-        let garbage = [];
         let animals = [];
         let pollutants = [];
         
         // Initialize game
         function initGame() {
-            // Create fewer garbage items, but make them bigger
-            garbage = [];
-            for (let i = 0; i < 15; i++) {
-                garbage.push({
-                    x: Math.random() * (canvas.width - 40) + 20,
-                    y: Math.random() * (canvas.height - 40) + 20,
-                    size: 15, // Bigger size for easier collection
-                    type: Math.floor(Math.random() * 3)
-                });
-            }
-            
-            // Create fewer trapped animals
+            // Only initialize trapped animals
             animals = [];
             const animalTypes = ['turtle', 'dolphin', 'jellyfish'];
             for (let i = 0; i < 5; i++) {
@@ -462,12 +446,18 @@
                 ctx.save();
                 
                 if (animal.trapped) {
-                    // Draw red outline for trapped animals only
+                    // Draw plastic waste around trapped animals
                     ctx.strokeStyle = '#FF4444';
                     ctx.lineWidth = 4;
                     ctx.setLineDash([5, 5]);
                     ctx.strokeRect(animal.x - animal.size/2 - 5, animal.y - animal.size/2 - 5, animal.size + 10, animal.size + 10);
                     ctx.setLineDash([]);
+                    
+                    // Add plastic debris around animal
+                    ctx.fillStyle = '#666666';
+                    ctx.fillRect(animal.x - animal.size/2 - 8, animal.y - 3, 6, 3);
+                    ctx.fillRect(animal.x + animal.size/2 + 2, animal.y + 2, 4, 2);
+                    ctx.fillRect(animal.x - 2, animal.y - animal.size/2 - 8, 3, 5);
                 }
                 
                 switch(animal.type) {
@@ -714,27 +704,14 @@
                 }
             });
             
-            // Check garbage collection with larger collision area
-            garbage = garbage.filter(item => {
-                const distance = Math.sqrt(Math.pow(rabbit.x - item.x, 2) + Math.pow(rabbit.y - item.y, 2));
-                if (distance < rabbit.size/2 + item.size) {  // Easier to collect
-                    score += 10;
-                    playSound(sounds.collect);
-                    return false;
-                }
-                return true;
-            });
-            
-            // Check animal rescue with larger collision area
-            let newlyFreed = false;
+            // Check animal rescue
             animals.forEach(animal => {
                 if (animal.trapped) {
                     const distance = Math.sqrt(Math.pow(rabbit.x - animal.x, 2) + Math.pow(rabbit.y - animal.y, 2));
-                    if (distance < rabbit.size/2 + animal.size) {  // Easier to rescue
+                    if (distance < rabbit.size/2 + animal.size/2) {
                         animal.trapped = false;
                         animalsSaved++;
                         score += 50;
-                        playSound(sounds.success);
                         newlyFreed = true;
                     }
                 }
@@ -757,19 +734,13 @@
             document.getElementById('animalsSaved').textContent = animalsSaved;
             document.getElementById('lives').textContent = lives;
             
-            // Check win condition - all animals saved message
-            let allAnimalsFreed = animals.every(animal => !animal.trapped);
-            if (allAnimalsFreed && animalsSaved > 0 && !document.getElementById('allAnimalsSaved').style.display) {
-                // Show "Yay!!! You saved All Animals!!!" message
-                showAllAnimalsSavedMessage();
-            }
-            
-            // Check final win condition
-            if (garbage.length === 0 && allAnimalsFreed) {
+            // Check win condition
+            if (animals.every(animal => !animal.trapped)) {
                 gameRunning = false;
-                document.getElementById('gameOverTitle').textContent = 'Victory!';
-                document.getElementById('gameOverMessage').textContent = `Amazing! You cleaned the beach and saved all ${animalsSaved} animals! Score: ${score}`;
+                document.getElementById('gameOverTitle').textContent = '🎉 Victory! 🎉';
+                document.getElementById('gameOverMessage').textContent = `Amazing! You saved all ${animalsSaved} ocean animals!`;
                 document.getElementById('gameOver').style.display = 'block';
+                createConfetti();
             }
             
             // Check lose condition
@@ -782,47 +753,26 @@
         }
         
         function draw() {
-            // Clear canvas with seashore gradient
+            // Clear canvas with ocean gradient
             const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, '#87CEEB'); // Sky blue
-            gradient.addColorStop(0.6, '#F0E68C'); // Sandy beach
-            gradient.addColorStop(1, '#DEB887'); // Beach sand
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(0.5, '#B0E0E6');
+            gradient.addColorStop(1, '#F0E68C');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Draw seashore wave pattern
-            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            const waveY = canvas.height * 0.3;
-            ctx.moveTo(0, waveY);
-            for (let x = 0; x < canvas.width; x += 15) {
-                ctx.lineTo(x, waveY + Math.sin(x * 0.02 + Date.now() * 0.003) * 8);
-            }
-            ctx.stroke();
-            
-            // Add small waves
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            // Draw wave pattern
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
             ctx.lineWidth = 2;
-            ctx.beginPath();
-            const waveY2 = canvas.height * 0.35;
-            ctx.moveTo(0, waveY2);
-            for (let x = 0; x < canvas.width; x += 20) {
-                ctx.lineTo(x, waveY2 + Math.sin(x * 0.03 + Date.now() * 0.002) * 5);
-            }
-            ctx.stroke();
-            
-            // Draw seashells and beach details
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            for (let i = 0; i < 8; i++) {
-                const x = (i * 80) + 40;
-                const y = canvas.height * 0.7 + Math.sin(i) * 20;
+            for (let i = 0; i < canvas.height; i += 40) {
                 ctx.beginPath();
-                ctx.arc(x, y, 3, 0, 2 * Math.PI);
-                ctx.fill();
+                ctx.moveTo(0, i);
+                for (let x = 0; x < canvas.width; x += 20) {
+                    ctx.lineTo(x, i + Math.sin(x * 0.1 + Date.now() * 0.005) * 5);
+                }
+                ctx.stroke();
             }
             
-            drawGarbage();
             drawAnimals();
             drawPollutants();
             drawRabbit();
@@ -834,17 +784,6 @@
             requestAnimationFrame(gameLoop);
         }
         
-        function showAllAnimalsSavedMessage() {
-            document.getElementById('allAnimalsSaved').style.display = 'block';
-            setTimeout(() => {
-                document.getElementById('allAnimalsSaved').style.display = 'none';
-            }, 3000); // Auto-hide after 3 seconds
-        }
-        
-        function closeAllAnimalsSavedMessage() {
-            document.getElementById('allAnimalsSaved').style.display = 'none';
-        }
-        
         function startGame() {
             gameRunning = true;
             score = 0;
@@ -854,7 +793,11 @@
             rabbit.y = 200;
             rabbit.direction = { x: 0, y: 0 };
             document.getElementById('gameOver').style.display = 'none';
-            document.getElementById('allAnimalsSaved').style.display = 'none';
+            
+            // Remove any existing confetti
+            const confetti = document.querySelectorAll('.confetti');
+            confetti.forEach(c => c.remove());
+            
             initGame();
         }
         
@@ -901,30 +844,73 @@
                 rabbit.direction = { x: 0, y: 0 };
             };
 
-            touchControls.upBtn.addEventListener('touchstart', () => handleStart({ x: 0, y: -1 }));
-            touchControls.downBtn.addEventListener('touchstart', () => handleStart({ x: 0, y: 1 }));
-            touchControls.leftBtn.addEventListener('touchstart', () => handleStart({ x: -1, y: 0 }));
-            touchControls.rightBtn.addEventListener('touchstart', () => handleStart({ x: 1, y: 0 }));
+            touchControls.upBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleStart({ x: 0, y: -1 });
+            });
+            touchControls.downBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleStart({ x: 0, y: 1 });
+            });
+            touchControls.leftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleStart({ x: -1, y: 0 });
+            });
+            touchControls.rightBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleStart({ x: 1, y: 0 });
+            });
 
             ['upBtn', 'downBtn', 'leftBtn', 'rightBtn'].forEach(btn => {
                 touchControls[btn].addEventListener('touchend', handleEnd);
             });
         }
 
-        // Simple sound effects
-        const sounds = {
-            collect: new Audio('data:audio/wav;base64,UklGRngGAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YUwGAACBhYqFbF1fdJivrJBhNjVgodDh0XxCKD2GvOLpw3EuKF2k3/LwtF8lPaH2/995SRxR0QAACxDh0ebu8dLu/wMFA+cc4cvd4HaPLylBUlFeeq3ax7G7ztbStpWmY08/hOD/70sQBTh5stLQv+Tkx7F9TCoQSej//nEC//YWHB0cDfDuGwsYIBv97Cjo6+4gCRE5Wm9jRUY7SHGPpcmtn4FVQEFOdaicfYT0IE5aqp5pWzNA3rgqYP0sW4HKUgK6WJP//wSLWhsqr8AUV2sKiVj//v82WjtCZ2NDTEtEa3yLmJeNdmNaSFpmd3l6dXeE2ugqSNEOKhoeFxL7/vz//wABEhwhEf////oHBAgHBhUgIBX0Q/81TmhpZmx0cFk9VXONhXBlbGdpY1NbcXhxaXN9c2JeaH1rXWDoF9IfEuAMoS4/PyRFz4gRv///BbS9kpX//wecm6qqpZaMmOHNRI6WBVWEiYOaoQA/inumk6K7t6qRgHyetJEhPE5rk6mxsLm+rYJ1YkhHRlFdiKW7tbOci5aoZ04RsPkbLyQS7D5JUH+vo3dFR1JXc2BWbVxSRDg0NEA3KEMnUkwiPFdwVpvTO2/6GF4qHG3DlHh3RUmL//8KD0FBRkhCwf//Cbe8tbmr//8MytLZ1djt8MeVd3hKEFJ7hKfAfXG2q7m+s62jm6axtK6ij4SFTU1PYXicrrKoiX+3dVd5dW9kSUY8YomQnqSrj2I8Rlh0c29qa11OQkhPS0pMUlx1h46ajoiLjo6MUE1GVVFTWmh0az4/VE5EVFpvb3iBe21qaXN1cXR5eX1/fXh9hIR/f4J/f4KBgH18fHp4d3VwZmhubmpsd3p7fnx2dHZ1cXN3gIqJgHZ4e3+Cg4WDfHx9f4B9e3p4d3p9f4CBg4mKiIJ/gIN3cXBvb2tpbG9xd3l3eHZydXZ1cXJ5fX18b21vcW9ucG5rZ21xc3JwcHBwbmxqa25vbm1vcXd4dXNxcnJxcHJ0d3h1cW5vcXJwbmxsb3Fvb3Fzc3Nwb25wcXBvcG9yc3Jxc3p8eHVwcHJyb25wcG5xc3JwcXNycG5tbm5ubG5ydHNvcHR2cm9ubm9ubGxtcXR1c3Fwb25tbWxra21wcm9tbW5wcG1tbm5tbG1wcXBub3Fzc3Bvb29ubW5wcW9ucHJzcXBvb29ubW5wcG5ucHFwb29vb25tbm5ubm5wcXBwcHBwcG9ubm5ubm9wcG9wcHBwb29vb29wcHBwcHBwcG9vb29vb29wcHBwcHBwcHBwcG9wcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcA==');
-            success: new Audio('data:audio/wav;base64,UklGRngCAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YSwCAAB4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eA==')
-        };
-
-        // Play sound with lower volume
-        function playSound(sound) {
-            sound.volume = 0.2;
-            sound.play().catch(() => {}); // Ignore errors if sound can't play
+        // Confetti celebration
+        function createConfetti() {
+            const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#FFD700'];
+            const confettiCount = 100;
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                
+                // Random position
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = -10 + 'px';
+                
+                // Random color
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Random size
+                const size = Math.random() * 10 + 5;
+                confetti.style.width = size + 'px';
+                confetti.style.height = size + 'px';
+                
+                // Random rotation
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                
+                // Random animation duration
+                const duration = Math.random() * 3 + 2;
+                confetti.style.animationDuration = duration + 's';
+                
+                document.body.appendChild(confetti);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, duration * 1000);
+            }
+            
+            // Play celebration sound
+            const audio = new Audio('data:audio/wav;base64,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qJrx4KOQjahZxWbcZgztj2c49nKmkId44S71j0c8eV9yDK6uPRzx5X18eDvjvQ6yKo9ZSS6l//8elePK/Lf//IInrOF/FvDoADYAGBMGb7FtErm5MXMlmPAJQVgWta7Zx2go+8xJ0UiCb8LHHdftWyLJE0QIAIsI+UbXu67dZMjmgDGCGl1H+vpF4NSDckSIkk7Vd+sxEhBQMRU8j/12UIRhzSaUdQ+rQU5kGeFxm+hb1oh6pWWmv3uvmReDl0UnvtapVaIzo1jZbf/pD6ElLqSX+rUmOQNpJFa/r+sa4e/pBlAABoAAAAA3CUgShLdGIxsY7AUABPRrgCABdDuQ5GC7DqPQCgbbJUAoRSUj+NIEig0YfyWUho1VBBBA//uQZB4ABZx5zfMakeAAAAmwAAAAF5F3P0w9GtAAACfAAAAAwLhMDmAYWMgVEG1U0FIGCBgXBXAtfMH10000EEEEEECUBYln03TTTdNBDZopopYvrTTdNa325mImNg3TTPV9q3pmY0xoO6bv3r00y+IDGid/9aaaZTGMuj9mpu9Mpio1dXrr5HERTZSmqU36A3CumzN/9Robv/Xx4v9ijkSRSNLQhAWumap82WRSBUqXStV/YcS+XVLnSS+WLDroqArFkMEsAS+eWmrUzrO0oEmE40RlMZ5+ODIkAyKAGUwZ3mVKmcamcJnMW26MRPgUw6j+LkhyHGVGYjSUUKNpuJUQoOIAyDvEyG8S5yfK6dhZc0Tx1KI/gviKL6qvvFs1+bWtaz58uUNnryq6kt5RzOCkPWlVqVX2a/EEBUdU1KrXLf40GoiiFXK///qpoiDXrOgqDR38JB0bw7SoL+ZB9o1RCkQjQ2CBYZKd/+VJxZRRZlqSkKiws0WFxUyCwsKiMy7hUVFhIaCrNQsKkTIsLivwKKigsj8XYlwt/WKi2N4d//uQRCSAAjURNIHpMZBGYiaQPSYyAAABLAAAAAAAACWAAAAApUF/Mg+0aohSIRobBAsMlO//Kk4soosy1JSFRYWaLC4qZBYWFRGZdwqKiwkNBVmoWFSJkWFxX4FFRQWR+LsS4W/rFRb/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////VEFHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU291bmRib3kuZGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMjAwNGh0dHA6Ly93d3cuc291bmRib3kuZGUAAAAAAAAAACU=');
+            audio.play();
         }
 
-        // Start the game
+        // Initialize mobile controls
         setupMobileControls();
+        
+        // Start the game
         initGame();
         gameLoop();
     </script>
